@@ -63,7 +63,7 @@ const broadcastTx = (tx) => {
         return
       }
       console.log('broadcast success!')
-      status = '交易发送成功'
+      status = '金额已返还，请注意查收'
     })
     .catch(err => console.log(err))
 }

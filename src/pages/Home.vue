@@ -1,7 +1,8 @@
 <template>
 <div class="home-view">
   <p>用途：比特币现金支付自助测试</p>
-  <p>使用方法：向本页面地址发送小额 BCH，本页面地址收到后，会将金额原路返回</p>
+  <p>使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回</p>
+  <p class="small">返还交易手续费为 227 聪，仅相当于几分钱</p>
   <div><a :href="addressUrl" target="_blank">{{address}}</a></div>
   <div>
     <qrcode 
@@ -15,7 +16,7 @@
     <div v-for="tx in txs">{{tx}}</div>
   </div>
   <div class="msg">
-    <div v-for="msg in status">{{msg}}</div>
+    <div v-for="msg in someStatus">{{msg}}</div>
     <div>...</div>
   </div>
 </div>
@@ -61,6 +62,11 @@ export default {
   computed: {
     addressUrl () {
       return `https://bch.btc.com/${this.address}`
+    },
+    someStatus () {
+      let tmp = this.status.slice()
+      tmp.length = 10
+      return tmp
     }
   },
   filters: {
@@ -74,12 +80,9 @@ export default {
     })
     setInterval(() => {
       this.getStatus().then(data => {
-        if (this.status.length > 10) {
-          this.status = []
-        }
         this.status.unshift(data)
       })
-    }, 4000)
+    }, 1500)
   },
   mounted () {
   }
@@ -106,5 +109,9 @@ export default {
   .msg div:first-child {
     font-size: .13rem;
     color: #333;
+  }
+  .small {
+    font-size: .11rem;
+    color: #929191;
   }
 </style>
