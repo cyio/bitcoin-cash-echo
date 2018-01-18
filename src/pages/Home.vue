@@ -1,20 +1,21 @@
 <template>
 <div class="home-view">
-  <p>用途：比特币现金支付自助测试</p>
-  <p>使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回</p>
-  <p class="small">返还交易手续费为 227 聪，仅相当于几分钱</p>
-  <div><a :href="addressUrl" target="_blank">{{address}}</a></div>
-  <div>
+  <p>
+    使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回。返还交易手续费为 227 聪，仅相当于几分钱
+  </p>
+  <div class="qr-wrap">
     <qrcode 
       :value="address" 
       v-if="address" 
       :options="{ size: 170 }">
     </qrcode>
+    <div class="right">
+      <button @click="copyAddress" class="btn">复制地址</button>
+      <a :href="addressUrl" target="_blank" class="btn">在区块链上查看</a>
+      <div>累计返还：xx笔</div>
+    </div>
   </div>
-  <div class="txs" v-if="txs.length > 3">
-    <div>成功交易：{{txs.length}} 笔</div>
-    <div v-for="tx in txs">{{tx}}</div>
-  </div>
+  <textarea ref="addr" readonly rows="1">{{address}}</textarea>
   <div class="msg">
     <div v-for="msg in someStatus">{{msg}}</div>
     <div>...</div>
@@ -57,6 +58,10 @@ export default {
       return axios.get('/api/address')
         .then(res => res.data)
         .catch(err => console.log(err))
+    },
+    copyAddress () {
+      this.$refs.addr.select()
+      document.execCommand('copy')
     }
   },
   computed: {
@@ -98,7 +103,8 @@ export default {
     text-align: center;
   }
   p {
-    margin: .03rem 0;
+    margin: .03rem;
+		text-align: left;
   }
   .msg {
     color: #737373;
@@ -113,5 +119,20 @@ export default {
   .small {
     font-size: .11rem;
     color: #929191;
+  }
+	textarea {
+    width: 86%;
+    resize: none;
+		white-space: nowrap;
+		font-size: 0.12rem;
+	}
+  .btn {
+    font-size: .12rem;
+    background: #eee;
+    color: #333;
+		margin: .05rem;
+  }
+  .qr-wrap {
+    display: flex;
   }
 </style>

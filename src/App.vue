@@ -2,8 +2,8 @@
 <div id="app">
   <header>
     <div class="title link" @click="go({path: '/'})">
-        Bitcoin Cash
-        <span class="sub">echo</span>
+				比特币现金支付测试
+        <span class="sub"></span>
     </div>
   </header>
   <div class="main">
