@@ -10,9 +10,10 @@
       :options="{ size: 170 }">
     </qrcode>
     <div class="right">
+      <div>累计返还：{{Math.round(txCount / 2)}}笔</div>
+      <div>共计：{{totalValue / 100}} bit</div>
       <button @click="copyAddress" class="btn">复制地址</button>
       <a :href="addressUrl" target="_blank" class="btn">在区块链上查看</a>
-      <div>累计返还：xx笔</div>
     </div>
   </div>
   <textarea ref="addr" readonly rows="1">{{address}}</textarea>
@@ -40,8 +41,9 @@ export default {
   data () {
     return {
       address: null,
-      status: [],
-      txs: []
+      txCount: 0,
+      totalValue: 0,
+      status: []
     }
   },
   methods: {
@@ -55,8 +57,13 @@ export default {
         .catch(err => console.log(err))
     },
     getAddress () {
-      return axios.get('/api/address')
-        .then(res => res.data)
+      axios.get('/api/address')
+        .then(res => {
+          const data = res.data
+          this.address = data.address
+          this.txCount = data.tx_count
+          this.totalValue = data.received
+        })
         .catch(err => console.log(err))
     },
     copyAddress () {
@@ -77,9 +84,7 @@ export default {
   filters: {
   },
   created () {
-    this.getAddress().then(data => {
-      this.address = data
-    })
+    this.getAddress()
     this.getStatus().then(data => {
       this.status.unshift(data)
     })
@@ -87,7 +92,7 @@ export default {
       this.getStatus().then(data => {
         this.status.unshift(data)
       })
-    }, 1500)
+    }, 2000)
   },
   mounted () {
   }
@@ -134,5 +139,11 @@ export default {
   }
   .qr-wrap {
     display: flex;
+  }
+  .qr-wrap .right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 </style>

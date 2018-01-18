@@ -2,10 +2,7 @@ const Koa = require('koa')
 const Router = require('koa-router')
 const statics = require('koa-static')
 const axios = require('axios')
-const cheerio = require('cheerio')
 const path = require('path')
-const url = require('url')
-const request = require('request')
 const history = require('koa2-connect-history-api-fallback')
 const bch = require('bitcoincashjs')
 const config = require('../private-config.json')
@@ -101,8 +98,19 @@ const getTxDetail = (txId) => {
   }).catch(err => console.log(err))
 }
 
+let addressDetailCache = null
+const getAddressDetail = (address) => {
+  return axios.get(`https://bch-chain.api.btc.com/v3/address/${address}`).then(res => {
+    addressDetailCache = res.data.data
+    return res.data.data
+  }).catch(err => console.log(err))
+}
+setInterval(() => {
+  getAddressDetail(acct1.address)
+}, 10000)
+
 router.get('/api/address', async (ctx, next) => {
-  ctx.body = acct1.address
+  ctx.body = addressDetailCache || (await getAddressDetail(acct1.address))
 })
 router.get('/api/status', async (ctx, next) => {
   ctx.body = status
