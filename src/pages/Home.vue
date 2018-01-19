@@ -10,13 +10,17 @@
       :options="{ size: 170 }">
     </qrcode>
     <div class="right">
-      <div>累计返还：{{Math.round(txCount / 2)}}笔</div>
+      <div>成功返还：{{Math.round(txCount / 2)}}笔</div>
       <div>共计：{{totalValue / 100}} bit</div>
       <button @click="copyAddress" class="btn">复制地址</button>
+      <div>
+        <label for="checkbox">使用新版地址</label>
+        <input type="checkbox" id="checkbox" v-model="useCashAddr" @change="convertAddress">
+      </div>
       <a :href="addressUrl" target="_blank" class="btn">在区块链上查看</a>
     </div>
   </div>
-  <textarea ref="addr" readonly rows="1">{{address}}</textarea>
+  <textarea ref="addr" readonly >{{address}}</textarea>
   <div class="msg">
     <div v-for="msg in someStatus">{{msg}}</div>
     <div>...</div>
@@ -29,6 +33,7 @@ import mixin from '@/mixin.js'
 // import numeral from 'numeral'
 import axios from 'axios'
 import Qrcode from '@xkeshi/vue-qrcode'
+import bchaddr from 'bchaddrjs'
 // import Timeago from 'timeago.js'
 // const timeAgo = new Timeago()
 axios.defaults.timeout = 5000
@@ -43,6 +48,7 @@ export default {
       address: null,
       txCount: 0,
       totalValue: 0,
+      useCashAddr: false,
       status: []
     }
   },
@@ -69,6 +75,11 @@ export default {
     copyAddress () {
       this.$refs.addr.select()
       document.execCommand('copy')
+    },
+    convertAddress () {
+      this.address = this.useCashAddr
+        ? bchaddr.toCashAddress(this.address)
+        : bchaddr.toLegacyAddress(this.address)
     }
   },
   computed: {
@@ -128,8 +139,10 @@ export default {
 	textarea {
     width: 86%;
     resize: none;
-		white-space: nowrap;
 		font-size: 0.12rem;
+		padding: .05rem 0;
+		text-align: center;
+    border: none;
 	}
   .btn {
     font-size: .12rem;
