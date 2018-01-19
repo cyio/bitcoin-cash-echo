@@ -12,7 +12,7 @@ const app = new Koa()
 const router = new Router()
 
 const defaultFee = 227
-let status = '无可花费金额，等待中'
+let status = 'waiting'
 
 const setAccount = (key) => {
   const privateKey = new bch.PrivateKey(key)
@@ -32,7 +32,7 @@ setInterval(async () => {
     const utxoTxDetail = await getTxDetail(utxo.txId)
     const outputAddress = utxoTxDetail.inputAddress
     console.log('spend to ' + outputAddress)
-    status = `返还 ${utxo.satoshis} satoshi 到 ${outputAddress }`
+    // status = `返还 ${utxo.satoshis} satoshi 到 ${outputAddress }`
     spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
   }
 }, 8000)
@@ -52,7 +52,6 @@ const spendUtxo = (address, privateKey, outputAddress, utxo, fee) => {
 // tx => promise
 const broadcastTx = (tx) => {
   console.log('begin broadcast')
-  status = '准备发送交易'
   return axios.post('https://bch-chain.api.btc.com/v3/tools/tx-publish', { rawhex: tx })
     .then(res => {
       if (res.data.err_msg) {
@@ -60,7 +59,7 @@ const broadcastTx = (tx) => {
         return
       }
       console.log('broadcast success!')
-      status = '金额已返还，请注意查收'
+      status = 'success'
     })
     .catch(err => console.log(err))
 }
@@ -72,7 +71,7 @@ const getUtxo = (addr) => {
       // console.log(res)
       if (!res.data.length) {
         console.log('no utxo for address ' + addr)
-        status = '等待支付中...'
+        status = 'waiting'
         return null
       }
       // 简化，总是返回最近一笔 utxo

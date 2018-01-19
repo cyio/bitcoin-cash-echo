@@ -22,8 +22,7 @@
   </div>
   <textarea ref="addr" readonly >{{address}}</textarea>
   <div class="msg">
-    <div v-for="msg in someStatus">{{msg}}</div>
-    <div>...</div>
+    <div>{{status}}</div>
   </div>
 	<modal :show='showModal' title='捐赠开发者(BCH)' @close='showModal = false'>
 	  <div slot="content" class="donate-modal">
@@ -51,6 +50,11 @@ import Modal from '../components/Modal'
 // import Timeago from 'timeago.js'
 // const timeAgo = new Timeago()
 axios.defaults.timeout = 5000
+const msgs = {
+  default: '等待支付中...',
+  waiting: '等待支付中...',
+  success: '有新的交易，金额已返还'
+}
 export default {
   name: 'Home',
   mixins: [mixin],
@@ -66,7 +70,7 @@ export default {
       useCashAddr: false,
       showModal: false,
       donateAddress: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
-      status: []
+      status: '等待支付中...'
     }
   },
   methods: {
@@ -105,23 +109,18 @@ export default {
   computed: {
     addressUrl () {
       return `https://bch.btc.com/${this.address}`
-    },
-    someStatus () {
-      let tmp = this.status.slice()
-      tmp.length = 10
-      return tmp
     }
   },
   filters: {
   },
   created () {
     this.getAddress()
-    this.getStatus().then(data => {
-      this.status.unshift(data)
-    })
     setInterval(() => {
-      this.getStatus().then(data => {
-        this.status.unshift(data)
+      this.getStatus().then(status => {
+        this.status = msgs[status]
+        if (status === 'success') {
+          this.getAddress()
+        }
       })
     }, 2000)
   },
