@@ -3,6 +3,7 @@
   <p>
     使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回。返还交易会扣除手续费 227 聪，仅相当于几分钱
   </p>
+  <div class="ad"> ---- 广告位 ---- </div>
   <div class="qr-wrap">
     <qrcode 
       :value="address" 
@@ -10,8 +11,8 @@
       :options="{ size: 170 }">
     </qrcode>
     <div class="right">
-      <div>成功返还：{{Math.round(txCount / 2)}}笔</div>
-      <div>共计：{{totalValue / 100}} bit</div>
+      <div>成功返还：<span class="highlight">{{Math.round(txCount / 2)}}</span> 笔</div>
+      <div>共计：<span class="highlight">{{totalValue / 100}}</span> bit</div>
       <button @click="copyAddress" class="btn">复制地址</button>
       <div>
         <label for="checkbox">使用新版地址</label>
@@ -21,16 +22,17 @@
     </div>
   </div>
   <textarea ref="addr" readonly >{{address}}</textarea>
-  <div class="msg">
-    <div>{{status}}</div>
-  </div>
-	<modal :show='showModal' title='捐赠开发者(BCH)' @close='showModal = false'>
+  <div class="status" v-bind:class="{ highlight: statusKey === 'success' }" >{{status[statusKey]}}</div>
+	<modal :show='showModal' title='联系/捐赠开发者(BCH)' @close='showModal = false'>
 	  <div slot="content" class="donate-modal">
-      <qrcode 
-        :value="donateAddress" 
-        :options="{ size: 170 }">
-      </qrcode>
+	    <div>
+        <qrcode
+          :value="donateAddress"
+          :options="{ size: 170 }">
+        </qrcode>
+      </div>
       <textarea readonly >{{donateAddress}}</textarea>
+      <div>电话&微信：13621208032 </br> 邮箱：icaner@qq.com</div>
       <div>
         <a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">开放源代码：cyio/bitcoin-cash-echo</a>
       </div>
@@ -50,11 +52,6 @@ import Modal from '../components/Modal'
 // import Timeago from 'timeago.js'
 // const timeAgo = new Timeago()
 axios.defaults.timeout = 5000
-const msgs = {
-  default: '等待支付中...',
-  waiting: '等待支付中...',
-  success: '有新的交易，金额已返还'
-}
 export default {
   name: 'Home',
   mixins: [mixin],
@@ -70,7 +67,12 @@ export default {
       useCashAddr: false,
       showModal: false,
       donateAddress: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
-      status: '等待支付中...'
+      statusKey: 'waiting',
+      status: {
+        default: '等待支付中...',
+        waiting: '等待支付中...',
+        success: '有新的交易，金额已返还'
+      }
     }
   },
   methods: {
@@ -117,10 +119,10 @@ export default {
     this.getAddress()
     setInterval(() => {
       this.getStatus().then(status => {
-        this.status = msgs[status]
         if (status === 'success') {
           this.getAddress()
         }
+        this.statusKey = status
       })
     }, 2000)
   },
@@ -148,14 +150,8 @@ export default {
     text-align: center;
   }
   p {
-    margin: .03rem;
+    margin: .1rem;
 		text-align: left;
-  }
-  .msg {
-    color: #737373;
-    font-size: .12rem;
-    height: .2rem;
-    line-height: .2rem;
   }
   .msg div:first-child {
     font-size: .13rem;
@@ -181,6 +177,8 @@ export default {
   }
   .qr-wrap {
     display: flex;
+		justify-content: space-around;
+    width: 90%;
   }
   .qr-wrap .right {
     display: flex;
@@ -200,5 +198,23 @@ export default {
     padding: .05rem;
     border-radius: .1rem;
     border: .01rem solid #d8d7d7;
+  }
+  .status {
+    font-size: .14rem;
+    font-weight: bold;
+		margin-top: .05rem;
+  }
+  .highlight {
+    color: var(--theme);
+  }
+  .ad {
+    background: #eee;
+    width: 90%;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #989494;
+		margin: .05rem;
   }
 </style>

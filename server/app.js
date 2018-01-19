@@ -32,7 +32,6 @@ setInterval(async () => {
     const utxoTxDetail = await getTxDetail(utxo.txId)
     const outputAddress = utxoTxDetail.inputAddress
     console.log('spend to ' + outputAddress)
-    // status = `返还 ${utxo.satoshis} satoshi 到 ${outputAddress }`
     spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
   }
 }, 8000)
@@ -66,7 +65,7 @@ const broadcastTx = (tx) => {
 
 // address => utxo
 const getUtxo = (addr) => {
-  return axios.get(`https://bitcoincash.blockexplorer.com/api/addrs/${addr}/utxo`)
+  return axios.get(`https://bitcoincash.blockexplorer.com/api/addrs/${addr}/utxo`, { timeout: 5000 })
     .then(res => {
       // console.log(res)
       if (!res.data.length) {
@@ -84,7 +83,7 @@ const getUtxo = (addr) => {
         'satoshis' : tmp.satoshis
       };
     })
-    .catch(err => console.log(err))
+    // .catch(err => console.log(err))
 }
 
 // 50f883d9c4acf8cc24c3ddc44d2dc8a8e9298c0c55d562441dbaad6c8ba913fd
