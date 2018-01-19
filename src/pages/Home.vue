@@ -1,7 +1,7 @@
 <template>
 <div class="home-view">
   <p>
-    使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回。返还交易手续费为 227 聪，仅相当于几分钱
+    使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回。返还交易会扣除手续费 227 聪，仅相当于几分钱
   </p>
   <div class="qr-wrap">
     <qrcode 
@@ -25,6 +25,19 @@
     <div v-for="msg in someStatus">{{msg}}</div>
     <div>...</div>
   </div>
+	<modal :show='showModal' title='捐赠开发者(BCH)' @close='showModal = false'>
+	  <div slot="content" class="donate-modal">
+      <qrcode 
+        :value="donateAddress" 
+        :options="{ size: 170 }">
+      </qrcode>
+      <textarea readonly >{{donateAddress}}</textarea>
+      <div>
+        <a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">开放源代码：cyio/bitcoin-cash-echo</a>
+      </div>
+    </div>
+	</modal>
+	<div @click="showModal = true" class="about">关于</div>
 </div>
 </template>
 
@@ -34,6 +47,7 @@ import mixin from '@/mixin.js'
 import axios from 'axios'
 import Qrcode from '@xkeshi/vue-qrcode'
 import bchaddr from 'bchaddrjs'
+import Modal from '../components/Modal'
 // import Timeago from 'timeago.js'
 // const timeAgo = new Timeago()
 axios.defaults.timeout = 5000
@@ -41,7 +55,8 @@ export default {
   name: 'Home',
   mixins: [mixin],
   components: {
-    qrcode: Qrcode
+    Qrcode,
+    Modal
   },
   data () {
     return {
@@ -49,6 +64,8 @@ export default {
       txCount: 0,
       totalValue: 0,
       useCashAddr: false,
+      showModal: false,
+      donateAddress: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
       status: []
     }
   },
@@ -80,6 +97,9 @@ export default {
       this.address = this.useCashAddr
         ? bchaddr.toCashAddress(this.address)
         : bchaddr.toLegacyAddress(this.address)
+      this.donateAddress = this.useCashAddr
+        ? bchaddr.toCashAddress(this.donateAddress)
+        : bchaddr.toLegacyAddress(this.donateAddress)
     }
   },
   computed: {
@@ -158,5 +178,18 @@ export default {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+  .donate-modal {
+    padding-bottom: .1rem;
+  }
+  .about {
+    position: fixed;
+    bottom: .2rem;
+    left: .2rem;
+    background: rgba(238, 238, 238, .7);
+    width: .4rem;
+    padding: .05rem;
+    border-radius: .1rem;
+    border: .01rem solid #d8d7d7;
   }
 </style>

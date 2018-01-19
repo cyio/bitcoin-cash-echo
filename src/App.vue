@@ -14,7 +14,7 @@
       <router-view />
     </transition>
   </div>
-  <footer><a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">源代码：cyio/bitcoin-cash-echo</a></footer>
+  <footer></footer>
 </div>
 </template>
 
@@ -65,7 +65,7 @@ p {
   // padding: .1rem;
 	margin-top: .03rem;
   border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+  // border-bottom: 1px solid #eee;
   min-height: 550px;
 }
 
