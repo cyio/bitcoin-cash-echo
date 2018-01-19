@@ -126,6 +126,16 @@ export default {
     }, 2000)
   },
   mounted () {
+    if (window.io) {
+      const socket = window.io('https://blockexplorer.com/')
+      socket.on('connect', () => {
+        // Join the room.
+        socket.emit('subscribe', 'inv')
+      })
+      socket.on('tx', (data) => {
+        console.table(data)
+      })
+    }
   }
 }
 </script>

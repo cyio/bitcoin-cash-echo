@@ -67,22 +67,22 @@ const broadcastTx = (tx) => {
 
 // address => utxo
 const getUtxo = (addr) => {
-  return axios.get(`https://api.blocktrail.com/v1/bcc/address/${addr}/unspent-outputs?api_key=${config.blocktrail_key}`)
+  return axios.get(`https://bitcoincash.blockexplorer.com/api/addrs/${addr}/utxo`)
     .then(res => {
       // console.log(res)
-      if (!res.data.total) {
+      if (!res.data.length) {
         console.log('no utxo for address ' + addr)
-        status = '无可花费金额，等待中'
+        status = '等待支付中...'
         return null
       }
       // 简化，总是返回最近一笔 utxo
-      const tmp = res.data.data[0]
+      const tmp = res.data[0]
       return {
-        'txId' : tmp.hash,
-        'outputIndex' : tmp.index,
+        'txId' : tmp.txid,
+        'outputIndex' : tmp.vout,
         'address': tmp.address,
-        'script': tmp.script_hex,
-        'satoshis' : tmp.value
+        'script': tmp.scriptPubKey,
+        'satoshis' : tmp.satoshis
       };
     })
     .catch(err => console.log(err))
