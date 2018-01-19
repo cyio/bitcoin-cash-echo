@@ -1,6 +1,6 @@
 {
-  "name": "Bitcoin Cash echo",
-  "short_name": "Bitcoin Cash echo",
+  "name": "Bitcoin Cash Echo Test",
+  "short_name": "Bitcoin Cash Echo Test",
   "icons": [
     {
       "src": "/static/img/icons/favicon.png",

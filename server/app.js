@@ -25,7 +25,7 @@ const setAccount = (key) => {
 
 let acct1 = setAccount(config.private_key)
 // console.log(acct1) 
-// 总是将 acct1 中的 utxo 返回
+// 总是将 acct1 的 utxo 返回
 setInterval(async () => {
   const utxo = await getUtxo(acct1.address)
   if (utxo) {
@@ -34,7 +34,7 @@ setInterval(async () => {
     console.log('spend to ' + outputAddress)
     spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
   }
-}, 8000)
+}, 5000)
 
 // (address, privatekey, outputAddress, utxo, fee)
 const spendUtxo = (address, privateKey, outputAddress, utxo, fee) => {
@@ -65,7 +65,7 @@ const broadcastTx = (tx) => {
 
 // address => utxo
 const getUtxo = (addr) => {
-  return axios.get(`https://bitcoincash.blockexplorer.com/api/addrs/${addr}/utxo`, { timeout: 5000 })
+  return axios.get(`https://bitcoincash.blockexplorer.com/api/addrs/${addr}/utxo`)
     .then(res => {
       // console.log(res)
       if (!res.data.length) {
@@ -83,7 +83,7 @@ const getUtxo = (addr) => {
         'satoshis' : tmp.satoshis
       };
     })
-    // .catch(err => console.log(err))
+    .catch(err => console.log(err))
 }
 
 // 50f883d9c4acf8cc24c3ddc44d2dc8a8e9298c0c55d562441dbaad6c8ba913fd

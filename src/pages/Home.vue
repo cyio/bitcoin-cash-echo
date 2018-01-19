@@ -1,9 +1,9 @@
 <template>
 <div class="home-view">
   <p>
-    使用：向本页面地址发送小额 BCH，本页面地址接收后，会立刻将金额原路返回。返还交易会扣除手续费 227 聪，仅相当于几分钱
+		{{$t('home.usage')}}
   </p>
-  <div class="ad"> ---- 广告位 ---- </div>
+  <div class="ad"> ---- {{$t('home.ad')}} ---- </div>
   <div class="qr-wrap">
     <qrcode 
       :value="address" 
@@ -11,19 +11,19 @@
       :options="{ size: 170 }">
     </qrcode>
     <div class="right">
-      <div>成功返还：<span class="highlight">{{Math.round(txCount / 2)}}</span> 笔</div>
-      <div>共计：<span class="highlight">{{totalValue / 100}}</span> bit</div>
-      <button @click="copyAddress" class="btn">复制地址</button>
+      <div>{{$t('home.successfullyReturned')}}：<span class="highlight">{{Math.round(txCount / 2)}}</span> {{$t('home.txCountUnit')}}</div>
+      <div>{{$t('home.totalValue')}}：<span class="highlight">{{totalValue / 100}}</span> bit</div>
+      <button @click="copyAddress" class="btn">{{isCopied ? $t('home.copied') : $t('home.copyAddr')}}</button>
       <div>
-        <label for="checkbox">使用新版地址</label>
+        <label for="checkbox">{{$t('home.useCashAddr')}}</label>
         <input type="checkbox" id="checkbox" v-model="useCashAddr" @change="convertAddress">
       </div>
-      <a :href="addressUrl" target="_blank" class="btn">在区块链上查看</a>
+      <a :href="addressUrl" target="_blank" class="btn">{{$t('home.openInBlockExplorer')}}</a>
     </div>
   </div>
   <textarea ref="addr" readonly >{{address}}</textarea>
-  <div class="status" v-bind:class="{ highlight: statusKey === 'success' }" >{{status[statusKey]}}</div>
-	<modal :show='showModal' title='联系/捐赠开发者(BCH)' @close='showModal = false'>
+  <div class="status" v-bind:class="{ success: statusKey === 'success' }" >{{status[statusKey]}}</div>
+	<modal :show='showModal' @close='showModal = false'>
 	  <div slot="content" class="donate-modal">
 	    <div>
         <qrcode
@@ -32,13 +32,14 @@
         </qrcode>
       </div>
       <textarea readonly >{{donateAddress}}</textarea>
-      <div>电话&微信：13621208032 </br> 邮箱：icaner@qq.com</div>
+      <div>{{$t('home.mobile')}}：13621208032 </br>{{$t('home.email')}}：ibeceo@gmail.com</div>
       <div>
-        <a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">开放源代码：cyio/bitcoin-cash-echo</a>
+        {{$t('home.sourceCode')}}：<a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">cyio/bitcoin-cash-echo</a>
+        {{$t('home.inspiredBy')}}: <a href="http://sandbox.swarmops.com/Admin/BitcoinEchoTest" target="_blank">Swarmops - Sandbox - Bitcoin Cash Hotwallet Echo Test</a>
       </div>
     </div>
 	</modal>
-	<div @click="showModal = true" class="about">关于</div>
+	<div @click="showModal = true" class="about">{{$t('home.about')}}</div>
 </div>
 </template>
 
@@ -68,21 +69,17 @@ export default {
       showModal: false,
       donateAddress: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
       statusKey: 'waiting',
+      isCopied: false,
       status: {
-        default: '等待支付中...',
-        waiting: '等待支付中...',
-        success: '有新的交易，金额已返还'
+        waiting: this.$t('home.waitingForTransaction'),
+        success: this.$t('home.newTransaction')
       }
     }
   },
   methods: {
     getStatus () {
-      this.$bar.start()
       return axios.get('/api/status')
-        .then(res => {
-          this.$bar.finish()
-          return res.data
-        })
+        .then(res => res.data)
         .catch(err => console.log(err))
     },
     getAddress () {
@@ -98,6 +95,10 @@ export default {
     copyAddress () {
       this.$refs.addr.select()
       document.execCommand('copy')
+      this.isCopied = true
+      setTimeout(() => {
+        this.isCopied = false
+      }, 3000)
     },
     convertAddress () {
       this.address = this.useCashAddr
@@ -164,7 +165,7 @@ export default {
 	textarea {
     width: 86%;
     resize: none;
-		font-size: 0.12rem;
+		font-size: 0.13rem;
 		padding: .05rem 0;
 		text-align: center;
     border: none;
@@ -178,13 +179,16 @@ export default {
   .qr-wrap {
     display: flex;
 		justify-content: space-around;
-    width: 90%;
+    width: 95%;
   }
   .qr-wrap .right {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+  .qr-wrap .right>div {
+    margin: .02rem 0;
   }
   .donate-modal {
     padding-bottom: .1rem;
@@ -204,6 +208,9 @@ export default {
     font-weight: bold;
 		margin-top: .05rem;
   }
+  .status.success {
+    color: green;
+  }
   .highlight {
     color: var(--theme);
   }
@@ -217,4 +224,7 @@ export default {
     color: #989494;
 		margin: .05rem;
   }
+	input[type="checkbox"] {
+			background-color: red;
+	}
 </style>

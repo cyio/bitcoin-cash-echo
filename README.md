@@ -6,16 +6,16 @@
 
 ## 开发
 
-安装依赖，在项目根目录下，注意不要用 yarn 安装
+安装依赖，在项目根目录下，**注意不要用 yarn 安装**
 ```sh
 npm install
 ```
 复制一份配置
-`cp private-config.json.template private-config.json`
+`$ cp private-config.json.template private-config.json`
+`private_key` // 用于接收资金的钱包私钥，必填
 ```json
 {
-	"private_key": "", // 用于接受资金的钱包私钥，必填
-	"blocktrail_key": ""  // blocktrail.com 提供的 api key，必填
+	"private_key": ""
 }
 ```
 本地开发启动后端
@@ -33,5 +33,6 @@ npm run dev:web
 
 ## 部署
 ```sh
+npm run build
 lean deploy
 ```

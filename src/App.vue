@@ -2,7 +2,7 @@
 <div id="app">
   <header>
     <div class="title link" @click="go({path: '/'})">
-				比特币现金支付测试
+        {{$t('home.title')}}
         <span class="sub"></span>
     </div>
   </header>
@@ -86,7 +86,7 @@ header {
 
 header .title {
   // width: 2rem;
-  font-size: .28rem;
+  font-size: .24rem;
 	margin-left: .10rem;
 }
 

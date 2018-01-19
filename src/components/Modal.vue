@@ -3,7 +3,7 @@
 		<div class="modal-wrapper" @click.self="close">
 			<div class="modal-container">
 				<div class="modal-header">
-					<div class="modal-title" slot="header">{{ title }}</div>
+					<div class="modal-title" slot="header">{{title || $t('home.aboutTitle')}}</div>
 					<div class="modal-close" @click="close">
 						<span></span>
 						<span></span>
@@ -54,7 +54,7 @@ export default {
 	left: 0;
 	width: 100%;
 	height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(0, 0, 0, 0.8);
 	display: table;
 	transition: opacity .16s linear;
 }
