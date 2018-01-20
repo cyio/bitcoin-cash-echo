@@ -7,8 +7,8 @@
   <div class="qr-wrap">
     <div class="qrcode" v-if="address"><img :src="qrUrls.addr" /></div>
     <div class="right">
-      <div>{{$t('home.successfullyReturned')}}：<span class="highlight">{{Math.round(txCount / 2)}}</span> {{$t('home.txCountUnit')}}</div>
-      <div>{{$t('home.totalValue')}}：<span class="highlight">{{totalValue / 100}}</span> Bits</div>
+      <div>{{$t('home.successfullyReturned')}}：<span class="highlight">{{sentCount}}</span> {{$t('home.txCountUnit')}}</div>
+      <div>{{$t('home.totalValue')}}：<span class="highlight">{{sentTotalValue / 100}}</span> Bits</div>
       <button @click="copyAddress" class="btn">{{isCopied ? $t('home.copied') : $t('home.copyAddr')}}</button>
       <div class="btn">
         <label for="checkbox">{{$t('home.useCashAddr')}}
@@ -55,8 +55,8 @@ export default {
   data () {
     return {
       address: null,
-      txCount: 0,
-      totalValue: 0,
+      sentCount: 0,
+      sentTotalValue: 0,
       useCashAddr: false,
       showModal: false,
       donateAddr: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
@@ -83,8 +83,8 @@ export default {
         .then(async res => {
           const data = res.data
           this.address = data.address
-          this.txCount = data.tx_count
-          this.totalValue = data.received
+          this.sentCount = Math.floor(data.tx_count / 2)
+          this.sentTotalValue = data.sent
           this.qrUrls.addr = await this.generateQR(this.address)
           this.qrUrls.donateAddr = await this.generateQR(this.donateAddr)
         })
@@ -178,9 +178,10 @@ export default {
     font-size: .12rem;
     background: #eee;
     color: #333;
-		margin: .05rem;
-		padding: .05rem;
-		border: 1px solid #dedada;
+    margin: .05rem;
+    padding: .05rem;
+    border: 1px solid #dedada;
+    color: var(--theme);
   }
   .qr-wrap {
     display: flex;
@@ -192,6 +193,7 @@ export default {
     flex-direction: column;
     // align-items: center;
     justify-content: center;
+    width: 70%;
   }
   .donate-modal {
     padding-bottom: .1rem;
@@ -209,7 +211,7 @@ export default {
   .status {
     font-size: .14rem;
     font-weight: bold;
-		margin-top: .05rem;
+    margin-top: .05rem;
   }
   .status.success {
     color: green;
@@ -230,5 +232,13 @@ export default {
   canvas {
     width: 170px;
     height: 170px;
+  }
+  .qrcode {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .qrcode img {
+    width: 1.5rem;
   }
 </style>
