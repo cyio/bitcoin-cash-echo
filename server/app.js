@@ -27,12 +27,16 @@ let acct1 = setAccount(config.private_key)
 // console.log(acct1) 
 // 总是将 acct1 的 utxo 返回
 setInterval(async () => {
-  const utxo = await getUtxo(acct1.address)
-  if (utxo) {
-    const utxoTxDetail = await getTxDetail(utxo.txId)
-    const outputAddress = utxoTxDetail.inputAddress
-    console.log('spend to ' + outputAddress)
-    spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
+// setTimeout(async () => {
+  const utxos = await getUtxos(acct1.address)
+  if (utxos && utxos.length) {
+    let utxo
+    for (utxo of utxos) {
+      const utxoTxDetail = await getTxDetail(utxo.txId)
+      const outputAddress = utxoTxDetail.inputAddress
+      console.log('spend to ' + outputAddress)
+      spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
+    }
   }
 }, 5000)
 
@@ -50,7 +54,7 @@ const spendUtxo = (address, privateKey, outputAddress, utxo, fee) => {
 // 广播交易, 注意 post 类型要设置 urlencoded
 // tx => promise
 const broadcastTx = (tx) => {
-  console.log('begin broadcast')
+  console.log('begin broadcast', tx)
   return axios.post('https://bch-chain.api.btc.com/v3/tools/tx-publish', { rawhex: tx })
     .then(res => {
       if (res.data.err_msg) {
@@ -63,25 +67,35 @@ const broadcastTx = (tx) => {
     .catch(err => console.log(err))
 }
 
-// address => utxo
-const getUtxo = (addr) => {
+// address => utxos
+const getUtxos = (addr) => {
   return axios.get(`https://bitcoincash.blockexplorer.com/api/addrs/${addr}/utxo`)
     .then(res => {
       // console.log(res)
       if (!res.data.length) {
-        console.log('no utxo for address ' + addr)
+        console.log('no spendable utxo for address ' + addr)
         status = 'waiting'
         return null
       }
-      // 简化，总是返回最近一笔 utxo
-      const tmp = res.data[0]
-      return {
-        'txId' : tmp.txid,
-        'outputIndex' : tmp.vout,
-        'address': tmp.address,
-        'script': tmp.scriptPubKey,
-        'satoshis' : tmp.satoshis
-      };
+      const spendableUtxos = res.data.filter(utxo => utxo.satoshis >= 5000)
+      if (!spendableUtxos.length) {
+        console.log('no spendable utxo for address ' + addr)
+        status = 'waiting'
+        return null
+      }
+      let result = []
+      let toSpendUtxo
+      for (toSpendUtxo of spendableUtxos) {
+        result.push({
+          'txId' : toSpendUtxo.txid,
+          'outputIndex' : toSpendUtxo.vout,
+          'address': toSpendUtxo.address,
+          'script': toSpendUtxo.scriptPubKey,
+          'satoshis' : toSpendUtxo.satoshis
+        })
+      }
+      console.log('utxos', result)
+      return result
     })
     .catch(err => console.log(err))
 }

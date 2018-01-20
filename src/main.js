@@ -16,7 +16,7 @@ const translations = {
   zh: {
     home: {
       title: '比特币现金支付测试',
-      usage: '使用：向本页面地址发送小额 BCH，该金额（扣除约 2 bit 矿工费）会在几秒内原路返还给你',
+      usage: '使用：向本页面地址发送小额 BCH (需大于 50 Bits)，该金额扣除约 2 Bits 矿工费后，会在几秒内原路返还给你',
       ad: '广告位',
       successfullyReturned: '成功返还',
       txCountUnit: '笔',
@@ -38,16 +38,16 @@ const translations = {
   en: {
     home: {
       title: 'Bitcoin Cash Echo Test',
-      usage: 'Usage: send BCH to address in this page, The amount (less miner fees of about 2 bit) will sent back to you in the next few seconds.',
+      usage: 'Usage: send only a small BCH value (larger than 50 Bits) to address in this page. The amount (less miner fees of about 2 Bits) will sent back to you in the next few seconds.',
       ad: 'Ad',
       successfullyReturned: 'Successfully returned',
-      txCountUnit: 'txs',
+      txCountUnit: 'Txs',
       totalValue: 'Total value',
       copyAddr: 'Copy address',
       copied: 'Copied',
       useCashAddr: 'Use CashAddr',
       openInBlockExplorer: 'Open in block explorer',
-      waitingForTransaction: 'Waiting for transaction',
+      waitingForTransaction: 'Waiting for transaction...',
       newTransaction: 'New transaction success',
       about: 'About',
       aboutTitle: 'Donate to the developer (BCH)',

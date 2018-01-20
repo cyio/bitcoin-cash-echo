@@ -6,17 +6,18 @@
   <div class="ad"> ---- {{$t('home.ad')}} ---- </div>
   <div class="qr-wrap">
     <qrcode 
-      :value="address" 
+      :value="arAddress" 
       v-if="address" 
-      :options="{ size: 170 }">
+      :options="{}">
     </qrcode>
     <div class="right">
       <div>{{$t('home.successfullyReturned')}}：<span class="highlight">{{Math.round(txCount / 2)}}</span> {{$t('home.txCountUnit')}}</div>
-      <div>{{$t('home.totalValue')}}：<span class="highlight">{{totalValue / 100}}</span> bit</div>
+      <div>{{$t('home.totalValue')}}：<span class="highlight">{{totalValue / 100}}</span> Bits</div>
       <button @click="copyAddress" class="btn">{{isCopied ? $t('home.copied') : $t('home.copyAddr')}}</button>
-      <div>
-        <label for="checkbox">{{$t('home.useCashAddr')}}</label>
-        <input type="checkbox" id="checkbox" v-model="useCashAddr" @change="convertAddress">
+      <div class="btn">
+        <label for="checkbox">{{$t('home.useCashAddr')}}
+          <input type="checkbox" id="checkbox" v-model="useCashAddr" @change="convertAddress">
+        </label>
       </div>
       <a :href="addressUrl" target="_blank" class="btn">{{$t('home.openInBlockExplorer')}}</a>
     </div>
@@ -28,7 +29,7 @@
 	    <div>
         <qrcode
           :value="donateAddress"
-          :options="{ size: 170 }">
+          :options="{}">
         </qrcode>
       </div>
       <textarea readonly >{{donateAddress}}</textarea>
@@ -112,6 +113,9 @@ export default {
   computed: {
     addressUrl () {
       return `https://bch.btc.com/${this.address}`
+    },
+    arAddress () {
+      return this.useCashAddr ? this.address : 'bitcoincash:' + this.address
     }
   },
   filters: {
@@ -175,6 +179,8 @@ export default {
     background: #eee;
     color: #333;
 		margin: .05rem;
+		padding: .05rem;
+		border: 1px solid #dedada;
   }
   .qr-wrap {
     display: flex;
@@ -184,11 +190,8 @@ export default {
   .qr-wrap .right {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    // align-items: center;
     justify-content: center;
-  }
-  .qr-wrap .right>div {
-    margin: .02rem 0;
   }
   .donate-modal {
     padding-bottom: .1rem;
@@ -227,4 +230,8 @@ export default {
 	input[type="checkbox"] {
 			background-color: red;
 	}
+  canvas {
+    width: 170px;
+    height: 170px;
+  }
 </style>
