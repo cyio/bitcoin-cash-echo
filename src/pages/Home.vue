@@ -5,11 +5,7 @@
   </p>
   <div class="ad"> ---- {{$t('home.ad')}} ---- </div>
   <div class="qr-wrap">
-    <qrcode 
-      :value="arAddress" 
-      v-if="address" 
-      :options="{}">
-    </qrcode>
+    <div class="qrcode" v-if="address"><img :src="qrUrls.addr" /></div>
     <div class="right">
       <div>{{$t('home.successfullyReturned')}}：<span class="highlight">{{Math.round(txCount / 2)}}</span> {{$t('home.txCountUnit')}}</div>
       <div>{{$t('home.totalValue')}}：<span class="highlight">{{totalValue / 100}}</span> Bits</div>
@@ -26,13 +22,8 @@
   <div class="status" v-bind:class="{ success: statusKey === 'success' }" >{{status[statusKey]}}</div>
 	<modal :show='showModal' @close='showModal = false'>
 	  <div slot="content" class="donate-modal">
-	    <div>
-        <qrcode
-          :value="donateAddress"
-          :options="{}">
-        </qrcode>
-      </div>
-      <textarea readonly >{{donateAddress}}</textarea>
+      <div class="qrcode" v-if="address"><img :src="qrUrls.donateAddr" /></div>
+      <textarea readonly >{{donateAddr}}</textarea>
       <div>{{$t('home.mobile')}}：13621208032 </br>{{$t('home.email')}}：ibeceo@gmail.com</div>
       <div>
         {{$t('home.sourceCode')}}：<a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">cyio/bitcoin-cash-echo</a>
@@ -48,9 +39,10 @@
 import mixin from '@/mixin.js'
 // import numeral from 'numeral'
 import axios from 'axios'
-import Qrcode from '@xkeshi/vue-qrcode'
+// import Qrcode from '@xkeshi/vue-qrcode'
 import bchaddr from 'bchaddrjs'
 import Modal from '../components/Modal'
+import QRCode from 'qrcode'
 // import Timeago from 'timeago.js'
 // const timeAgo = new Timeago()
 axios.defaults.timeout = 5000
@@ -58,7 +50,6 @@ export default {
   name: 'Home',
   mixins: [mixin],
   components: {
-    Qrcode,
     Modal
   },
   data () {
@@ -68,9 +59,13 @@ export default {
       totalValue: 0,
       useCashAddr: false,
       showModal: false,
-      donateAddress: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
+      donateAddr: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
       statusKey: 'waiting',
       isCopied: false,
+      qrUrls: {
+        addr: null,
+        donateAddr: null
+      },
       status: {
         waiting: this.$t('home.waitingForTransaction'),
         success: this.$t('home.newTransaction')
@@ -85,11 +80,13 @@ export default {
     },
     getAddress () {
       axios.get('/api/address')
-        .then(res => {
+        .then(async res => {
           const data = res.data
           this.address = data.address
           this.txCount = data.tx_count
           this.totalValue = data.received
+          this.qrUrls.addr = await this.generateQR(this.address)
+          this.qrUrls.donateAddr = await this.generateQR(this.donateAddr)
         })
         .catch(err => console.log(err))
     },
@@ -101,21 +98,24 @@ export default {
         this.isCopied = false
       }, 3000)
     },
-    convertAddress () {
+    async convertAddress () {
       this.address = this.useCashAddr
         ? bchaddr.toCashAddress(this.address)
         : bchaddr.toLegacyAddress(this.address)
-      this.donateAddress = this.useCashAddr
-        ? bchaddr.toCashAddress(this.donateAddress)
-        : bchaddr.toLegacyAddress(this.donateAddress)
+      this.donateAddr = this.useCashAddr
+        ? bchaddr.toCashAddress(this.donateAddr)
+        : bchaddr.toLegacyAddress(this.donateAddr)
+      this.qrUrls.addr = await this.generateQR(this.address)
+      this.qrUrls.donateAddr = await this.generateQR(this.donateAddr)
+    },
+    async generateQR (text) {
+      const url = await QRCode.toDataURL(this.useCashAddr ? text.toUpperCase() : text, { mode: 'alphanumeric' })
+      return url
     }
   },
   computed: {
     addressUrl () {
       return `https://bch.btc.com/${this.address}`
-    },
-    arAddress () {
-      return this.useCashAddr ? this.address : 'bitcoincash:' + this.address
     }
   },
   filters: {
@@ -227,9 +227,6 @@ export default {
     color: #989494;
 		margin: .05rem;
   }
-	input[type="checkbox"] {
-			background-color: red;
-	}
   canvas {
     width: 170px;
     height: 170px;
