@@ -1,38 +1,37 @@
 # bitcoin-cash-echo
 
-线上访问：[Bitcoin Cash echo](http://bch-echo.leanapp.cn/)
+Online：[Bitcoin Cash echo](http://bch-echo.leanapp.cn/)
 
-## 说明
+## Development
 
-## 开发
-
-安装依赖，在项目根目录下，**注意不要用 yarn 安装**
+install dependency, **notice don't use yarn **, because of [Fail To complete transaction · Issue #188 · bitpay/bitcore-lib](https://github.com/bitpay/bitcore-lib/issues/188)
 ```sh
 npm install
 ```
-复制一份配置
+copy a setting file from the template
 `$ cp private-config.json.template private-config.json`
-`private_key` // 用于接收资金的钱包私钥，必填
+`private_key` // hot wallet to receive funds and send transactions
 ```json
 {
 	"private_key": ""
 }
 ```
-本地开发启动后端
+run backend
 ```sh
-lean up --port 8083
-```
-或者不使用 leancloud
-```sh
+lean up
+# or not use leancloud
 npm run dev
 ```
-启动前端
+run frontend
 ```sh
 npm run dev:web
 ```
 
-## 部署
+## Deploy
 ```sh
+# build frontend
 npm run build
 lean deploy
+# or not use leancloud
+npm run start
 ```

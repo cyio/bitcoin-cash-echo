@@ -37,14 +37,10 @@
 
 <script>
 import mixin from '@/mixin.js'
-// import numeral from 'numeral'
 import axios from 'axios'
-// import Qrcode from '@xkeshi/vue-qrcode'
 import bchaddr from 'bchaddrjs'
 import Modal from '../components/Modal'
 import QRCode from 'qrcode'
-// import Timeago from 'timeago.js'
-// const timeAgo = new Timeago()
 axios.defaults.timeout = 5000
 export default {
   name: 'Home',
