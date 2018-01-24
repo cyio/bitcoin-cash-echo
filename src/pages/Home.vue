@@ -63,9 +63,9 @@ export default {
         donateAddr: null
       },
       status: {
-        waiting: this.$t('home.waitingForTransaction'),
-        newUtxo: this.$t('home.newUtxo'),
-        success: this.$t('home.newTransaction')
+        'waiting': this.$t('home.waitingForTransaction'),
+        'new utxo': this.$t('home.newUtxo'),
+        'success': this.$t('home.newTransaction')
       }
     }
   },
