@@ -49,7 +49,7 @@ const poll = () => {
     } else {
       poll()
     }
-  }, 3000)
+  }, 2000)
 }
 
 poll()
@@ -62,7 +62,10 @@ const spendUtxo = (address, privateKey, outputAddress, utxo, fee) => {
     .to(outputAddress, utxo.satoshis - fee)
     .sign(privateKey)
   console.log(transaction)
-  broadcastTx(transaction.toString()).then(() => getAddressDetail(acct1.address))
+  broadcastTx(transaction.toString()).then(async () => {
+    await getAddressDetail(acct1.address)
+    status = 'success'
+  })
 }
 
 // 广播交易, 注意 post 类型要设置 urlencoded
@@ -76,7 +79,6 @@ const broadcastTx = (tx) => {
         return
       }
       console.log('broadcast success!')
-      status = 'success'
     })
     .catch(err => console.log(err))
 }
@@ -97,6 +99,7 @@ const getUtxos = (addr) => {
         status = 'waiting'
         return null
       }
+      status = 'new utxo'
       let result = []
       let toSpendUtxo
       for (toSpendUtxo of spendableUtxos) {
@@ -127,6 +130,7 @@ const getTxDetail = (txId) => {
 let addressDetailCache = null
 const getAddressDetail = (address) => {
   return axios.get(`https://bch-chain.api.btc.com/v3/address/${address}`).then(res => {
+    console.log('update address detail')
     addressDetailCache = res.data.data
     return res.data.data
   }).catch(err => console.log(err))
@@ -134,9 +138,6 @@ const getAddressDetail = (address) => {
 
 router.get('/api/address', async (ctx, next) => {
   ctx.body = addressDetailCache || (await getAddressDetail(acct1.address))
-})
-router.get('/api/status', async (ctx, next) => {
-  ctx.body = status
 })
 
 ws.all('/*', async (ctx, next) => {

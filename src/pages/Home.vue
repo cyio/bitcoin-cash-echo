@@ -19,7 +19,7 @@
     </div>
   </div>
   <textarea ref="addr" readonly >{{address}}</textarea>
-  <div class="status" v-bind:class="{ success: statusKey === 'success' }" >{{status[statusKey]}}</div>
+  <div class="status" v-bind:class="{ success: statusKey !== 'waiting' }" >{{status[statusKey]}}</div>
 	<modal :show='showModal' @close='showModal = false'>
 	  <div slot="content" class="donate-modal">
       <div class="qrcode" v-if="address"><img :src="qrUrls.donateAddr" /></div>
@@ -64,6 +64,7 @@ export default {
       },
       status: {
         waiting: this.$t('home.waitingForTransaction'),
+        newUtxo: this.$t('home.newUtxo'),
         success: this.$t('home.newTransaction')
       }
     }
