@@ -1,15 +1,19 @@
-const Koa = require('koa')
-const Router = require('koa-router')
-const statics = require('koa-static')
-const axios = require('axios')
-const path = require('path')
-const history = require('koa2-connect-history-api-fallback')
-const bch = require('bitcoincashjs')
-const config = require('../private-config.json')
+const Koa = require('koa'),
+  Router = require('koa-router'),
+  statics = require('koa-static'),
+  axios = require('axios'),
+  path = require('path'),
+  history = require('koa2-connect-history-api-fallback'),
+  bch = require('bitcoincashjs'),
+  config = require('../private-config.json'),
+  websockify = require('koa-websocket');
+
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
 
 const app = new Koa()
+const socket = websockify(app)
 const router = new Router()
+const ws = new Router()
 
 const defaultFee = 227
 let status = 'waiting'
@@ -128,10 +132,19 @@ router.get('/api/status', async (ctx, next) => {
   ctx.body = status
 })
 
+ws.all('/*', async (ctx, next) => {
+  console.log('connected websocket')
+  setInterval(() => {
+    ctx.websocket.send(status)
+  }, 1000)
+})
+
 app
   .use(router.routes())
   .use(router.allowedMethods())
   .use(history({whkteList: ['/api']}))
   .use(statics(path.join(__dirname, '../dist')))
+
+app.ws.use(ws.routes()).use(ws.allowedMethods())
 
 module.exports = app

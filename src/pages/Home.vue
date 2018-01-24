@@ -75,8 +75,11 @@ export default {
         .catch(err => console.log(err))
     },
     getAddress () {
+      console.log('get address')
+      this.$bar.start()
       axios.get('/api/address')
         .then(async res => {
+          this.$bar.finish()
           const data = res.data
           this.address = data.address
           this.sentCount = Math.floor(data.tx_count / 2)
@@ -118,25 +121,25 @@ export default {
   },
   created () {
     this.getAddress()
-    setInterval(() => {
-      this.getStatus().then(status => {
-        if (status === 'success') {
-          this.getAddress()
-        }
-        this.statusKey = status
-      })
-    }, 2000)
   },
   mounted () {
-    if (window.io) {
-      const socket = window.io('https://blockexplorer.com/')
-      socket.on('connect', () => {
-        // Join the room.
-        socket.emit('subscribe', 'inv')
-      })
-      socket.on('tx', (data) => {
-        console.table(data)
-      })
+    let wsUrl = 'ws://' + window.location.host
+    if (window.location.hostname === 'localhost') {
+      wsUrl = 'ws://localhost:8083'
+    }
+    const ws = new WebSocket(wsUrl)
+    ws.onopen = (event) => {
+      console.log('websocket on open')
+    }
+    ws.onmessage = (message) => {
+      // console.log(message)
+      const status = message.data
+      if (this.statusKey === status) return
+      console.log('new status: ', status)
+      if (status === 'success') {
+        this.getAddress()
+      }
+      this.statusKey = status
     }
   }
 }
