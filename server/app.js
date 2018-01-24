@@ -29,20 +29,30 @@ const setAccount = (key) => {
 
 let acct1 = setAccount(config.private_key)
 // console.log(acct1) 
-// 总是将 acct1 的 utxo 返回
-setInterval(async () => {
-// setTimeout(async () => {
-  const utxos = await getUtxos(acct1.address)
-  if (utxos && utxos.length) {
-    let utxo
-    for (utxo of utxos) {
-      const utxoTxDetail = await getTxDetail(utxo.txId)
-      const outputAddress = utxoTxDetail.inputAddress
-      console.log('spend to ' + outputAddress)
-      spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
+
+// 轮询 utxo，如果有未花费，则返还给输入地址
+const poll = () => {
+  // setInterval(async () => {
+  setTimeout(async () => {
+    const utxos = await getUtxos(acct1.address)
+    if (utxos && utxos.length) {
+      let utxo
+      for (utxo of utxos) {
+        const utxoTxDetail = await getTxDetail(utxo.txId)
+        const outputAddress = utxoTxDetail.inputAddress
+        console.log('spend to ' + outputAddress)
+        await spendUtxo(acct1.address, acct1.privateKey, outputAddress, utxo, defaultFee)
+        // 广播交易后，多等一会再进行下一次轮询
+        await sleep(10000)
+        poll()
+      }
+    } else {
+      poll()
     }
-  }
-}, 5000)
+  }, 3000)
+}
+
+poll()
 
 // (address, privatekey, outputAddress, utxo, fee)
 const spendUtxo = (address, privateKey, outputAddress, utxo, fee) => {
@@ -52,7 +62,7 @@ const spendUtxo = (address, privateKey, outputAddress, utxo, fee) => {
     .to(outputAddress, utxo.satoshis - fee)
     .sign(privateKey)
   console.log(transaction)
-  broadcastTx(transaction.toString())
+  broadcastTx(transaction.toString()).then(() => getAddressDetail(acct1.address))
 }
 
 // 广播交易, 注意 post 类型要设置 urlencoded
@@ -121,9 +131,6 @@ const getAddressDetail = (address) => {
     return res.data.data
   }).catch(err => console.log(err))
 }
-setInterval(() => {
-  getAddressDetail(acct1.address)
-}, 10000)
 
 router.get('/api/address', async (ctx, next) => {
   ctx.body = addressDetailCache || (await getAddressDetail(acct1.address))
@@ -146,5 +153,9 @@ app
   .use(statics(path.join(__dirname, '../dist')))
 
 app.ws.use(ws.routes()).use(ws.allowedMethods())
+
+function sleep(ms = 0) {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms));
+}
 
 module.exports = app
