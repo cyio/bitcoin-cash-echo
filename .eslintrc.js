@@ -20,6 +20,14 @@ module.exports = {
     // allow paren-less arrow functions
     'arrow-parens': 0,
     // allow async-await
+    'space-before-function-paren': 0,
+    'comma-dangle': [
+      'error',
+      {
+        objects: 'only-multiline',
+        arrays: 'only-multiline',
+      },
+    ],
     'generator-star-spacing': 0,
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0
