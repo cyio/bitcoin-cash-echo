@@ -1,0 +1,27 @@
+branches:
+  only:
+  - master
+language: node_js
+sudo: false
+node_js: stable
+cache:
+  directories:
+  - node_modules
+before_install:
+- git config --global user.name "cyio"
+- git config --global user.email "ibeceo@gmail.com"
+- git clone --branch gh-pages https://github.com/cyio/bitcoin-cash-echo.git dist
+install:
+- npm install
+script:
+- npm run build
+after_script:
+- cd dist
+- cp index.html 404.html
+- git add --all .
+- git commit --message "auto deploy"
+- git push "https://cyio:${GITHUB_TOKEN}@${GH_REF}" gh-pages:gh-pages
+env:
+  global:
+  - GH_REF: github.com/cyio/bitcoin-cash-echo.git
+  - secure: DMCGGi8NxSJsQc27UgB/ejySLWHlU5yVHl0KEKtIh1poTVUSQZ0cOzy/aFRfY5mzwMRZD2jrDnhmkRza9dOzdg3rmoIP0fBWCBkBmzYys59X9sQ5wuOFJwtm/weFOTwhhu39T3/j1vN1+my1Pd1+mRs0g+jTV5QpZykebT8Vvi0Dk1UpV6qdYEZaDQK2laKZukYsPrAliDEGkrQgjg7T00v+xx7AsnnntDm+gj5JIGu10VWYpsD4i5vT8sAySBtyogTty1dcj++JAM6AKYHxLpxr88usa06qidet9tDbWHsvyVdB2+Tyvm9qgy57c0r5+ssd6RAfeJ/hbTa5/BBLFdW4p9FOmNlpqjIEPlNUzK4o96Gvg+5myorlNXU8e3K8+VYPwJvJYGk7np4tWVJaTu2fEji4+1wfXl2wY1FU4//d6YzUCL+vg4D/6Eh9dXLUsb49fJ8cWphTGIxJymHpA1yb0RNyZZloFCvY3NKKCjkYVeo0T+uQl1cjrD1EIOyxWdrMXWdNrRB/IZarYYX7Dvtb78FXXgLPsHmnKXBoC+JL8GeAQ8oL/wP3BmBXRccth65kTbCnwiz22ZWyLrqpTNZ7kyW2ldPtdKe4sjqB9lH2XYNvoDCDfXewhSAs/1fT6SP7ds4jEWkmA33CrVh5kL4A7tV4jFZ4J4xB2c88p2o=
