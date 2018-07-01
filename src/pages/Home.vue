@@ -1,47 +1,87 @@
-<template>
-<div class="home-view">
-  <p>
-		{{$t('home.usage')}}
-  </p>
-  <div class="ad"> ---- {{$t('home.ad')}} ---- </div>
-  <div class="qr-wrap">
-    <div class="qrcode" v-if="address"><img :src="qrUrls.addr" /></div>
-    <div class="right">
-      <div>{{$t('home.successfullyReturned')}}：<span class="highlight">{{sentCount}}</span> {{$t('home.txCountUnit')}}</div>
-      <div>{{$t('home.totalValue')}}：<span class="highlight">{{sentTotalValue / 100}}</span> Bits</div>
-      <button @click="copyAddress" class="btn">{{isCopied ? $t('home.copied') : $t('home.copyAddr')}}</button>
-      <div class="btn">
-        <label for="checkbox">{{$t('home.useCashAddr')}}
-          <input type="checkbox" id="checkbox" v-model="useCashAddr" @change="convertAddress">
-        </label>
-      </div>
-      <a :href="addressUrl" target="_blank" class="btn">{{$t('home.openInBlockExplorer')}}</a>
-    </div>
-  </div>
-  <textarea ref="addr" readonly >{{address}}</textarea>
-  <div class="status" v-bind:class="{ success: statusKey !== 'waiting' }" >{{status[statusKey]}}</div>
-	<modal :show='showModal' @close='showModal = false'>
-	  <div slot="content" class="donate-modal">
-      <div class="qrcode" v-if="address"><img :src="qrUrls.donateAddr" /></div>
-      <textarea readonly >{{donateAddr}}</textarea>
-      <div>{{$t('home.mobile')}}：13621208032 </br>{{$t('home.email')}}：ibeceo@gmail.com</div>
-      <div>
-        {{$t('home.sourceCode')}}：<a href="https://github.com/cyio/bitcoin-cash-echo" target="_blank">cyio/bitcoin-cash-echo</a>
-        {{$t('home.inspiredBy')}}: <a href="http://sandbox.swarmops.com/Admin/BitcoinEchoTest" target="_blank">Swarmops - Sandbox - Bitcoin Cash Hotwallet Echo Test</a>
-      </div>
-    </div>
-	</modal>
-	<div @click="showModal = true" class="about">{{$t('home.about')}}</div>
-</div>
+<template lang="pug">
+.home-view
+  p
+    | {{$t('home.usage')}}
+  .qr-wrap
+    .qrcode(v-if='address')
+      img(:src='qrUrls.addr')
+    .right
+      // button.btn(@click='copyAddress') {{isCopied ? $t('home.copied') : $t('home.copyAddr')}}
+      .text {{$t('home.currentNet')}}: {{useTestnet ? $t('home.testnet') : $t('home.mainnet') }}
+      // button.btn(@click="switchNetwork" :disabled="networkSwitching") {{networkSwitching ? '切换中，稍等' : '切换网络'}}
+      button.btn(@click="switchNetwork" :disabled="networkSwitching") {{$t('home.switchNetwork')}}
+      // .btn
+        // label(for='checkbox')
+          // | {{$t('home.useTestnet')}}
+          // input#checkbox(type='checkbox', v-model='useTestnet')
+      .btn
+        label(for='checkbox')
+          | {{$t('home.useLegacyAddr')}}
+          input#checkbox(type='checkbox', v-model='useLegacyAddr', @change='convertAddress')
+      a.btn(:href='addressUrl', target='_blank') {{$t('home.openInBlockExplorer')}}
+  textarea(ref='addr', readonly='') {{address}}
+  .status(v-bind:class="{ success: statusKey !== 'waiting' }") {{status[statusKey]}}
+  .success-list
+    a(v-for="txid in successTxList" :href="txUrl(txid)" target='_blank') {{txid}} 
+  modal(:show='showModal', @close='showModal = false')
+    .donate-modal(slot='content')
+      .qrcode(v-if='address')
+        img(:src='qrUrls.donateAddr')
+      textarea(readonly='') {{donateAddr}}
+      div
+        | {{$t('home.sourceCode')}}: 
+        a(href='https://github.com/cyio/bitcoin-cash-echo', target='_blank') cyio/bitcoin-cash-echo
+        |{{$t('home.inspiredBy')}}: 
+        a(href='http://sandbox.swarmops.com/Admin/BitcoinEchoTest', target='_blank') Swarmops - Sandbox - Bitcoin Cash Hotwallet Echo Test
+  .about(@click='showModal = true') {{$t('home.about')}}
 </template>
 
 <script>
 import mixin from '@/mixin.js'
 import axios from 'axios'
-import bchaddr from 'bchaddrjs'
 import Modal from '../components/Modal'
 import QRCode from 'qrcode'
 axios.defaults.timeout = 5000
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+let BITBOXCli = require('bitbox-cli/lib/bitbox-cli').default
+let account0
+let previousUtxoTxid
+let pollInstance
+let BITBOX = new BITBOXCli()
+let bchaddr = BITBOX.Address
+let getUtxos = async (address) => {
+  return new Promise((resolve, reject) => {
+    BITBOX.Address.utxo(address).then((result) => {
+      console.log('utxo: ', result)
+      resolve(result)
+    }, (err) => {
+      console.log(err)
+      reject(err)
+    })
+  })
+}
+let sendTxAsync = async (hex) => {
+  return new Promise((resolve, reject) => {
+    BITBOX.RawTransactions.sendRawTransaction(hex).then((result) => {
+      console.log('txid:', result)
+      resolve(result)
+    }, (err) => {
+      console.log(err)
+      reject(err)
+    })
+  })
+}
+const getSenderAddress = (txid) => {
+  return new Promise((resolve, reject) => {
+    BITBOX.Transaction.details(txid).then(txDetail => {
+      console.log({txDetail})
+      resolve(txDetail.vin[0].cashAddress)
+    }, (err) => {
+      console.log(err)
+      reject(err)
+    })
+  })
+}
 export default {
   name: 'Home',
   mixins: [mixin],
@@ -51,45 +91,26 @@ export default {
   data () {
     return {
       address: null,
-      sentCount: 0,
-      sentTotalValue: 0,
-      useCashAddr: false,
+      useLegacyAddr: false,
+      useTestnet: false,
       showModal: false,
-      donateAddr: '1M1FYu4zuVaxRPWLZG5CnP8qQrZaqu6c2L',
-      statusKey: 'waiting',
+      donateAddr: 'bitcoincash:qrdka2205f4hyukutc2g0s6lykperc8nsu5u2ddpqf',
       isCopied: false,
       qrUrls: {
         addr: null,
         donateAddr: null
       },
+      statusKey: 'waiting',
       status: {
         'waiting': this.$t('home.waitingForTransaction'),
         'new utxo': this.$t('home.newUtxo'),
         'success': this.$t('home.newTransaction')
-      }
+      },
+      networkSwitching: false,
+      successTxList: [],
     }
   },
   methods: {
-    getStatus () {
-      return axios.get('/api/status')
-        .then(res => res.data)
-        .catch(err => console.log(err))
-    },
-    getAddress () {
-      console.log('get address')
-      this.$bar.start()
-      axios.get('/api/address')
-        .then(async res => {
-          this.$bar.finish()
-          const data = res.data
-          this.address = data.address
-          this.sentCount = Math.floor(data.tx_count / 2)
-          this.sentTotalValue = data.sent
-          this.qrUrls.addr = await this.generateQR(this.address)
-          this.qrUrls.donateAddr = await this.generateQR(this.donateAddr)
-        })
-        .catch(err => console.log(err))
-    },
     copyAddress () {
       this.$refs.addr.select()
       document.execCommand('copy')
@@ -99,49 +120,114 @@ export default {
       }, 3000)
     },
     async convertAddress () {
-      this.address = this.useCashAddr
+      this.address = !this.useLegacyAddr
         ? bchaddr.toCashAddress(this.address)
         : bchaddr.toLegacyAddress(this.address)
-      this.donateAddr = this.useCashAddr
+      this.donateAddr = !this.useLegacyAddr
         ? bchaddr.toCashAddress(this.donateAddr)
         : bchaddr.toLegacyAddress(this.donateAddr)
       this.qrUrls.addr = await this.generateQR(this.address)
       this.qrUrls.donateAddr = await this.generateQR(this.donateAddr)
     },
     async generateQR (text) {
-      const url = await QRCode.toDataURL(this.useCashAddr ? text.toUpperCase() : text, { mode: 'alphanumeric' })
+      const url = await QRCode.toDataURL(!this.useLegacyAddr ? text.toUpperCase() : text, { mode: 'alphanumeric' })
       return url
+    },
+    switchNetwork() {
+      if (this.networkSwitching) return
+      this.networkSwitching = true
+      this.successTxList = []
+      console.log('set net start', this.networkSwitching)
+      this.useTestnet = !this.useTestnet
+      if (pollInstance) {
+        clearTimeout(pollInstance)
+      }
+      BITBOX = new BITBOXCli({
+        restURL: this.useTestnet ? 'https://trest.bitbox.earth/v1/' : 'https://rest.bitbox.earth/v1/',
+      })
+      this.createWallet()
+    },
+    async createWallet() {
+      let mnemonic = localStorage.getItem('mnemonic')
+      if (!mnemonic) {
+        mnemonic = BITBOX.Mnemonic.generate(128)
+        localStorage.setItem('mnemonic', mnemonic)
+      }
+      let rootSeed = BITBOX.Mnemonic.toSeed(mnemonic)
+      let masterHDNode = BITBOX.HDNode.fromSeed(rootSeed, this.useTestnet ? 'testnet' : 'bitcoincash')
+      let account = BITBOX.HDNode.derivePath(masterHDNode, "m/44'/145'/0'")
+      account0 = BITBOX.HDNode.derivePath(account, '0/0')
+      this.address = BITBOX.HDNode.toCashAddress(account0)
+      console.log(this.address)
+      this.qrUrls.addr = await this.generateQR(this.address)
+      this.qrUrls.donateAddr = await this.generateQR(this.donateAddr)
+      this.poll(this.address)
+      this.networkSwitching = false
+    },
+    spendUtxo(utxo, targetAddress) {
+      let transactionBuilder = new BITBOX.TransactionBuilder(this.useTestnet ? 'testnet' : 'bitcoincash')
+      let originalAmount = utxo.satoshis
+      let vout = utxo.vout
+      let txid = utxo.txid
+      transactionBuilder.addInput(txid, vout)
+      let byteCount = BITBOX.BitcoinCash.getByteCount({ P2PKH: 1 }, { P2PKH: 1 })
+      let sendAmount = originalAmount - byteCount
+      transactionBuilder.addOutput(targetAddress, sendAmount)
+      let keyPair = BITBOX.HDNode.toKeyPair(account0)
+      let redeemScript
+      transactionBuilder.sign(0, keyPair, redeemScript, transactionBuilder.hashTypes.SIGHASH_ALL, originalAmount)
+      let tx = transactionBuilder.build()
+      let hex = tx.toHex()
+      console.log({hex})
+      sendTxAsync(hex).then((txid) => {
+        previousUtxoTxid = utxo.txid
+        this.statusKey = 'success'
+        this.successTxList.push(txid)
+      })
+    },
+    poll(address) {
+      this.statusKey = 'waiting'
+      pollInstance = setTimeout(async () => {
+        const utxos = await getUtxos(address)
+        if (utxos && utxos.length) {
+          for (let utxo of utxos) {
+            // console.log(utxo.txid, previousUtxoTxid)
+            if (utxo.txid !== previousUtxoTxid) {
+              console.log({utxo})
+              this.statusKey = 'new utxo'
+              let targetAddress = await getSenderAddress(utxo.txid)
+              await this.spendUtxo(utxo, targetAddress)
+              // 广播交易后，多等一会再进行下一次轮询
+              await sleep(10000)
+            } else {
+              console.log('pass utxo')
+            }
+          }
+          this.poll(address)
+        } else {
+          this.poll(address)
+        }
+      }, 1000 * 5)
+    },
+    txUrl(txid) {
+      let explorerUrl = this.useTestnet ? 'https://www.blocktrail.com/tBCC/tx/' : 'https://bch.btc.com/'
+      return explorerUrl + txid
     }
   },
   computed: {
     addressUrl () {
-      return `https://bch.btc.com/${this.address}`
+      let explorerUrl = this.useTestnet ? 'https://www.blocktrail.com/tBCC/address/' : 'https://bch.btc.com/'
+      return explorerUrl + this.address
     }
+  },
+  watch: {
   },
   filters: {
   },
   created () {
-    this.getAddress()
   },
   mounted () {
-    let wsUrl = 'ws://' + window.location.host
-    if (window.location.hostname === 'localhost') {
-      wsUrl = 'ws://localhost:8083'
-    }
-    const ws = new WebSocket(wsUrl)
-    ws.onopen = (event) => {
-      console.log('websocket on open')
-    }
-    ws.onmessage = (message) => {
-      // console.log(message)
-      const status = message.data
-      if (this.statusKey === status) return
-      console.log('new status: ', status)
-      if (status === 'success') {
-        this.getAddress()
-      }
-      this.statusKey = status
-    }
+    this.createWallet()
   }
 }
 </script>
@@ -240,5 +326,8 @@ export default {
   }
   .qrcode img {
     width: 1.5rem;
+  }
+  .success-list {
+    margin-top: 20px;
   }
 </style>

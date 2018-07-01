@@ -158,7 +158,7 @@ img, embed, iframe {
 	color: #fff;
 }
 .link:focus:before {
-  animation: effect_dylan 0.8s ease-out;
+  // animation: effect_dylan 0.8s ease-out;
 }
 @keyframes effect_dylan {
 	50% {
