@@ -21,8 +21,9 @@
       a.btn(:href='addressUrl', target='_blank') {{$t('home.openInBlockExplorer')}}
   textarea(ref='addr', readonly='') {{address}}
   .status(v-bind:class="{ success: statusKey !== 'waiting' }") {{status[statusKey]}}
-  .success-list
-    a(v-for="txid in successTxList" :href="txUrl(txid)" target='_blank') {{txid}} 
+  ul.success-list
+    li(v-for="txid in successTxList" )
+      a(:href="txUrl(txid)" target='_blank') {{txid}} 
   modal(:show='showModal', @close='showModal = false')
     .donate-modal(slot='content')
       .qrcode(v-if='address')
@@ -31,8 +32,6 @@
       div
         | {{$t('home.sourceCode')}}: 
         a(href='https://github.com/cyio/bitcoin-cash-echo', target='_blank') cyio/bitcoin-cash-echo
-        |{{$t('home.inspiredBy')}}: 
-        a(href='http://sandbox.swarmops.com/Admin/BitcoinEchoTest', target='_blank') Swarmops - Sandbox - Bitcoin Cash Hotwallet Echo Test
   .about(@click='showModal = true') {{$t('home.about')}}
 </template>
 
@@ -329,5 +328,7 @@ export default {
   }
   .success-list {
     margin-top: 20px;
+    width: 90%;
+		overflow: hidden;
   }
 </style>

@@ -1,37 +1,31 @@
 # bitcoin-cash-echo
 
-Online：[Bitcoin Cash echo](http://bch-echo.leanapp.cn/)
+## What
+This website will automatically return the amount you sent, for testing purposes only.
 
-## Development
+## Features
 
-install dependency, **notice don't use yarn **, because of [Fail To complete transaction · Issue #188 · bitpay/bitcore-lib](https://github.com/bitpay/bitcore-lib/issues/188)
-```sh
+* client only, create new HDwallet for every user, mnemonic only saves on browser storage.
+* support mainnet and testnet
+* support legacy and cashAddress
+* English and Chinese language support 
+
+Inspired by [Bitcoin Cash Hotwallet Echo Test by Rick Falkvinge](http://sandbox.swarmops.com/Admin/BitcoinEchoTest)
+
+## Rewite
+The old version uses bitcore.js to create a single wallet. It has a backend because of cors issue. 
+
+This new version uses [BITBOX](https://github.com/bigearth/bitbox-cli) to rewrite, and has no server.
+
+## Build Setup
+
+``` bash
+# install dependencies
 npm install
-```
-copy a setting file from the template
-`$ cp private-config.json.template private-config.json`
-`private_key` // hot wallet to receive funds and send transactions
-```json
-{
-	"private_key": ""
-}
-```
-run backend
-```sh
-lean up
-# or not use leancloud
-npm run dev
-```
-run frontend
-```sh
-npm run dev:web
-```
 
-## Deploy
-```sh
-# build frontend
+# serve with hot reload
+npm run dev
+
+# build for production with minification
 npm run build
-lean deploy
-# or not use leancloud
-npm run start
 ```
