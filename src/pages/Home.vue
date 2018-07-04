@@ -216,7 +216,8 @@ export default {
   computed: {
     addressUrl () {
       let explorerUrl = this.useTestnet ? 'https://www.blocktrail.com/tBCC/address/' : 'https://bch.btc.com/'
-      return explorerUrl + this.address
+      let address = this.address && BITBOX.Address.toLegacyAddress(this.address)
+      return explorerUrl + address
     }
   },
   watch: {

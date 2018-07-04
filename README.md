@@ -12,7 +12,7 @@ This website will automatically return the amount you sent, for testing purposes
 
 Inspired by [Bitcoin Cash Hotwallet Echo Test by Rick Falkvinge](http://sandbox.swarmops.com/Admin/BitcoinEchoTest)
 
-## Rewite
+## Rewrite
 The old version uses bitcore.js to create a single wallet. It has a backend because of cors issue. 
 
 This new version uses [BITBOX](https://github.com/bigearth/bitbox-cli) to rewrite, and has no server.
